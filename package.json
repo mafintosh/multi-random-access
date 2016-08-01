@@ -1,0 +1,23 @@
+{
+  "name": "multi-random-access",
+  "version": "0.0.0",
+  "description": "An abstract-random-access compliant instance that combines multiple other abstract-random-access instances into a single one.",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "standard": "^7.1.2"
+  },
+  "scripts": {
+    "test": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mafintosh/multi-random-access.git"
+  },
+  "author": "Mathias Buus (@mafintosh)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mafintosh/multi-random-access/issues"
+  },
+  "homepage": "https://github.com/mafintosh/multi-random-access"
+}
