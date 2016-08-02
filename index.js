@@ -47,6 +47,8 @@ Storage.prototype._read = function (offset, length, cb) {
 Storage.prototype._end = function (opts, cb) {
   var self = this
 
+  next(0)
+
   function next (i) {
     if (!self._stores[i]) return cb()
     self._stores[i].end(opts, function (err) {
@@ -54,8 +56,6 @@ Storage.prototype._end = function (opts, cb) {
       next(i + 1)
     })
   }
-
-  next(0)
 }
 
 Storage.prototype._readMulti = function (offset, length, next, cb) {
