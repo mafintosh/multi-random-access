@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "An abstract-random-access compliant instance that combines multiple other abstract-random-access instances into a single one.",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "abstract-random-access": "^1.0.2"
+  },
   "devDependencies": {
     "standard": "^7.1.2"
   },

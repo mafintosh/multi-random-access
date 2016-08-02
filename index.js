@@ -1,13 +1,19 @@
+var AbstractRandomAccess = require('abstract-random-access')
+var inherits = require('inherits')
+
 module.exports = Storage
 
 function Storage (open) {
   if (!(this instanceof Storage)) return new Storage(open)
+  AbstractRandomAccess.call(this)
   this._openStorage = open
   this._maxOpen = 32
   this._stores = []
 }
 
-Storage.prototype.write = function (offset, buf, cb) {
+inherits(Storage, AbstractRandomAccess)
+
+Storage.prototype._write = function (offset, buf, cb) {
   var match = this._get(offset)
   if (!match) return this._openAndWrite(offset, buf, cb)
 
@@ -27,7 +33,7 @@ Storage.prototype._writeMulti = function (offset, buf, next, cb) {
   })
 }
 
-Storage.prototype.read = function (offset, length, cb) {
+Storage.prototype._read = function (offset, length, cb) {
   var match = this._get(offset)
   if (!match) return this._openAndRead(offset, length, cb)
 
