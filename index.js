@@ -7,7 +7,7 @@ function Storage (open) {
   if (!(this instanceof Storage)) return new Storage(open)
   AbstractRandomAccess.call(this)
   this._openStorage = open
-  this._maxOpen = 32
+  this._maxOpen = 128
   this._stores = []
 }
 
@@ -57,12 +57,26 @@ Storage.prototype._readMulti = function (offset, length, next, cb) {
 }
 
 Storage.prototype._get = function (offset) {
-  for (var i = 0; i < this._stores.length; i++) {
-    var next = this._stores[i]
-    if (next.start <= offset && offset < next.end) return next
-  }
+  var len = this._stores.length
+  var top = len - 1
+  var btm = 0
 
-  return null
+  while (top >= btm && btm >= 0 && top < len) {
+    var mid = Math.floor((top + btm) / 2)
+    var next = this._stores[mid]
+
+    if (offset < next.start) {
+      top = mid - 1
+      continue
+    }
+
+    if (offset >= next.end) {
+      btm = mid + 1
+      continue
+    }
+
+    return next
+  }
 }
 
 Storage.prototype._add = function (match) {
