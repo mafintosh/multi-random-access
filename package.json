@@ -8,10 +8,12 @@
     "inherits": "^2.0.1"
   },
   "devDependencies": {
-    "standard": "^7.1.2"
+    "random-access-memory": "^2.1.0",
+    "standard": "^7.1.2",
+    "tape": "^4.6.0"
   },
   "scripts": {
-    "test": "standard"
+    "test": "tape test.js && standard"
   },
   "repository": {
     "type": "git",
