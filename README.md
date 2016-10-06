@@ -6,7 +6,7 @@ An [abstract-random-access](https://github.com/juliangruber/abstract-random-acce
 npm install multi-random-access
 ```
 
-[![build status](http://img.shields.io/travis/mafintosh/multi-access-file.svg?style=flat)](http://travis-ci.org/mafintosh/multi-access-file)
+[![build status](http://img.shields.io/travis/mafintosh/multi-random-access.svg?style=flat)](http://travis-ci.org/mafintosh/multi-random-access)
 
 ## Usage
 
