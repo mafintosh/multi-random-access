@@ -3,12 +3,22 @@ var inherits = require('inherits')
 
 module.exports = Storage
 
-function Storage (open) {
-  if (!(this instanceof Storage)) return new Storage(open)
+function Storage (opts, open) {
+  if (!(this instanceof Storage)) return new Storage(opts, open)
+
+  if (typeof opts === 'function') {
+    open = opts
+    opts = null
+  }
+  if (!opts) opts = {}
+
   AbstractRandomAccess.call(this)
+
+  this.stores = []
+  this.limit = opts.limit || 16
+
   this._openStorage = open
-  this._maxOpen = 128
-  this._stores = []
+  this._last = null
 }
 
 inherits(Storage, AbstractRandomAccess)
@@ -44,20 +54,6 @@ Storage.prototype._read = function (offset, length, cb) {
   else match.storage.read(start, length, cb)
 }
 
-Storage.prototype._end = function (opts, cb) {
-  var self = this
-
-  next(0)
-
-  function next (i) {
-    if (!self._stores[i]) return cb()
-    self._stores[i].end(opts, function (err) {
-      if (err) return cb(err)
-      next(i + 1)
-    })
-  }
-}
-
 Storage.prototype._readMulti = function (offset, length, next, cb) {
   var self = this
 
@@ -70,14 +66,46 @@ Storage.prototype._readMulti = function (offset, length, next, cb) {
   })
 }
 
+Storage.prototype._end = function (opts, cb) {
+  var self = this
+
+  next(0)
+
+  function next (i) {
+    if (!self.stores[i]) return cb()
+    self.stores[i].storage.end(opts, function (err) {
+      if (err) return cb(err)
+      next(i + 1)
+    })
+  }
+}
+
+Storage.prototype._close = function (cb) {
+  var self = this
+
+  next(0)
+
+  function next (i) {
+    if (!self.stores[i]) return cb()
+    self.stores[i].storage.close(function (err) {
+      if (err) return cb(err)
+      next(i + 1)
+    })
+  }
+}
+
 Storage.prototype._get = function (offset) {
-  var len = this._stores.length
+  if (this._last) { // high chance that we'll hit the same at least twice
+    if (this._last.start <= offset && this._last.end < offset) return this._last
+  }
+
+  var len = this.stores.length
   var top = len - 1
   var btm = 0
 
   while (top >= btm && btm >= 0 && top < len) {
     var mid = Math.floor((top + btm) / 2)
-    var next = this._stores[mid]
+    var next = this.stores[mid]
 
     if (offset < next.start) {
       top = mid - 1
@@ -89,28 +117,41 @@ Storage.prototype._get = function (offset) {
       continue
     }
 
+    this._last = next
     return next
   }
 }
 
-Storage.prototype._add = function (match) {
+Storage.prototype._add = function (match, cb) {
+  var self = this
   var prev = this._get(match.start)
 
   if (prev) {
     match.storage.close()
-    return
+    return cb()
   }
 
-  this._stores.push(match)
-  this._stores.sort(compare)
+  done(null)
+
+  function done (err) {
+    if (err) return cb(err)
+    if (self.stores.length >= self.limit) {
+      removeSorted(self.stores, Math.floor(Math.random() * self.stores.length)).storage.close(done)
+    } else {
+      insertSorted(self.stores, match)
+      cb()
+    }
+  }
 }
 
 Storage.prototype._openAndWrite = function (offset, buf, cb) {
   var self = this
   this._openStorage(offset, function (err, match) {
     if (err) return cb(err)
-    self._add(match)
-    self.write(offset, buf, cb)
+    self._add(match, function (err) {
+      if (err) return cb(err)
+      self.write(offset, buf, cb)
+    })
   })
 }
 
@@ -118,11 +159,27 @@ Storage.prototype._openAndRead = function (offset, length, cb) {
   var self = this
   this._openStorage(offset, function (err, match) {
     if (err) return cb(err)
-    self._add(match)
-    self.read(offset, length, cb)
+    self._add(match, function (err) {
+      if (err) return cb(err)
+      self.read(offset, length, cb)
+    })
   })
 }
 
-function compare (a, b) {
-  return a.start - b.start
+function removeSorted (list, i) {
+  for (; i < list.length - 1; i++) list[i] = list[i + 1]
+  return list.pop()
+}
+
+function insertSorted (list, item) {
+  var top = list.push(item) - 1
+  while (top) {
+    if (list[top - 1].start > item.start) {
+      list[top] = list[top - 1]
+      list[top - 1] = item
+      top--
+    } else {
+      break
+    }
+  }
 }
