@@ -37,7 +37,7 @@ storage.write(0, Buffer('hello world'), function (err) {
 
 ## API
 
-#### `var storage = multi(open)`
+#### `var storage = multi([options], open)`
 
 Create a new instance. `open` is a function that is called when a new storage instance is needed. A new instance is needed when a read or write happens in a byte range that has not been opened yet.
 
@@ -50,6 +50,14 @@ function open (offset, cb) {
     end: endByteOffset,
     storage: abstractRandomAccessInstance
   })
+}
+```
+
+Options include:
+
+``` js
+{
+  limit: 16 // start closes old stores after this many was opened
 }
 ```
 

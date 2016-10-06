@@ -122,7 +122,9 @@ Storage.prototype._get = function (offset) {
   }
 }
 
-Storage.prototype._add = function (match, cb) {
+Storage.prototype.add = function (match, cb) {
+  if (!cb) cb = noop
+
   var self = this
   var prev = this._get(match.start)
 
@@ -148,7 +150,7 @@ Storage.prototype._openAndWrite = function (offset, buf, cb) {
   var self = this
   this._openStorage(offset, function (err, match) {
     if (err) return cb(err)
-    self._add(match, function (err) {
+    self.add(match, function (err) {
       if (err) return cb(err)
       self.write(offset, buf, cb)
     })
@@ -159,7 +161,7 @@ Storage.prototype._openAndRead = function (offset, length, cb) {
   var self = this
   this._openStorage(offset, function (err, match) {
     if (err) return cb(err)
-    self._add(match, function (err) {
+    self.add(match, function (err) {
       if (err) return cb(err)
       self.read(offset, length, cb)
     })
@@ -183,3 +185,5 @@ function insertSorted (list, item) {
     }
   }
 }
+
+function noop () {}

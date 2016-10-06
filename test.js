@@ -65,3 +65,34 @@ test('more than limit', function (t) {
     t.end()
   })
 })
+
+test('binary search', function (t) {
+  var storage = Storage()
+  var target = ram(new Buffer(28))
+
+  storage.add({
+    start: 42,
+    end: 46,
+    storage: ram(new Buffer(4))
+  })
+
+  storage.add({
+    start: 14,
+    end: 42,
+    storage: target
+  })
+
+  storage.add({
+    start: 0,
+    end: 14,
+    storage: ram(new Buffer(14))
+  })
+
+  storage.write(15, new Buffer('hi'), function () {
+    target.read(1, 2, function (err, buf) {
+      t.error(err)
+      t.same(buf, new Buffer('hi'))
+      t.end()
+    })
+  })
+})
