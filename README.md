@@ -6,6 +6,8 @@ An [abstract-random-access](https://github.com/juliangruber/abstract-random-acce
 npm install multi-random-access
 ```
 
+[![build status](http://img.shields.io/travis/mafintosh/multi-access-file.svg?style=flat)](http://travis-ci.org/mafintosh/multi-access-file)
+
 ## Usage
 
 In the below example we'll create a multi-random-access instance that writes to different instances of [random-access-memory](https://github.com/mafintosh/random-access-memory), each containing 10 bytes of data.
