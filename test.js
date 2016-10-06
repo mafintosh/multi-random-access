@@ -1,5 +1,5 @@
 var test = require('tape')
-var Storage = require('.')
+var Storage = require('./')
 var ram = require('random-access-memory')
 
 test('Storage(open)', function (t) {
