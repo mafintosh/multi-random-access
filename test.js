@@ -120,3 +120,85 @@ test('end', function (t) {
     t.error(err)
   })
 })
+
+test('end retries', function (t) {
+  t.plan(5)
+
+  var storage = Storage()
+  var childStorage = ram(new Buffer(10))
+  var i = 0
+  childStorage._end = function (opts, cb) {
+    t.ok(true)
+    if (i++ === 1) return cb(new Error('nope'))
+    cb()
+  }
+  storage.add({
+    start: 0,
+    end: 9,
+    storage: childStorage
+  })
+  storage.add({
+    start: 10,
+    end: 19,
+    storage: childStorage
+  })
+  storage.end(function (err) {
+    t.ok(err)
+    storage.end(function (err) {
+      t.error(err)
+    })
+  })
+})
+
+test('close', function (t) {
+  t.plan(3)
+
+  var storage = Storage()
+  var childStorage = ram(new Buffer(10))
+  childStorage._close = function (cb) {
+    t.ok(true)
+    cb()
+  }
+  storage.add({
+    start: 0,
+    end: 9,
+    storage: childStorage
+  })
+  storage.add({
+    start: 10,
+    end: 19,
+    storage: childStorage
+  })
+  storage.close(function (err) {
+    t.error(err)
+  })
+})
+
+test('close retries', function (t) {
+  t.plan(5)
+
+  var storage = Storage()
+  var childStorage = ram(new Buffer(10))
+  var i = 0
+  childStorage._close = function (cb) {
+    t.ok(true)
+    if (i++ === 1) return cb(new Error('nope'))
+    cb()
+  }
+  storage.add({
+    start: 0,
+    end: 9,
+    storage: childStorage
+  })
+  storage.add({
+    start: 10,
+    end: 19,
+    storage: childStorage
+  })
+  storage.close(function (err) {
+    t.ok(err)
+    storage.close(function (err) {
+      t.error(err)
+    })
+  })
+})
