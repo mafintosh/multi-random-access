@@ -96,3 +96,27 @@ test('binary search', function (t) {
     })
   })
 })
+
+test('end', function (t) {
+  t.plan(3)
+
+  var storage = Storage()
+  var childStorage = ram(new Buffer(10))
+  childStorage._end = function (opts, cb) {
+    t.ok(true)
+    cb()
+  }
+  storage.add({
+    start: 0,
+    end: 9,
+    storage: childStorage
+  })
+  storage.add({
+    start: 10,
+    end: 19,
+    storage: childStorage
+  })
+  storage.end(function (err) {
+    t.error(err)
+  })
+})
