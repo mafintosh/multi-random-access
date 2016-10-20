@@ -96,7 +96,7 @@ Storage.prototype._close = function (cb) {
 
 Storage.prototype._get = function (offset) {
   if (this._last) { // high chance that we'll hit the same at least twice
-    if (this._last.start <= offset && this._last.end < offset) return this._last
+    if (this._last.start <= offset && this._last.end > offset) return this._last
   }
 
   var len = this.stores.length
