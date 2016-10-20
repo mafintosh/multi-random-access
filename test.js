@@ -29,6 +29,39 @@ test('Storage(open)', function (t) {
   })
 })
 
+test('big write', function (t) {
+  var storage = Storage()
+
+  storage.add({
+    start: 0,
+    end: 10,
+    storage: ram()
+  })
+
+  storage.add({
+    start: 10,
+    end: 20,
+    storage: ram()
+  })
+
+  storage.add({
+    start: 20,
+    end: 30,
+    storage: ram()
+  })
+
+  var buf = new Buffer(25)
+
+  storage.write(0, buf, function (err) {
+    t.error(err)
+    storage.read(0, 25, function (err, val) {
+      t.error(err)
+      t.same(val, buf)
+      t.end()
+    })
+  })
+})
+
 test('read + write', function (t) {
   t.plan(3)
 
@@ -101,22 +134,31 @@ test('end', function (t) {
   t.plan(3)
 
   var storage = Storage()
-  var childStorage = ram(new Buffer(10))
-  childStorage._end = function (opts, cb) {
-    t.ok(true)
-    cb()
-  }
+
   storage.add({
     start: 0,
     end: 9,
-    storage: childStorage
+    storage: create()
   })
+
   storage.add({
     start: 10,
     end: 19,
-    storage: childStorage
+    storage: create()
   })
+
   storage.end(function (err) {
     t.error(err)
   })
+
+  function create () {
+    var childStorage = ram(new Buffer(10))
+
+    childStorage._end = function (opts, cb) {
+      t.ok(true)
+      cb()
+    }
+
+    return childStorage
+  }
 })
