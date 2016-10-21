@@ -138,7 +138,9 @@ Storage.prototype.add = function (match, cb) {
   function done (err) {
     if (err) return cb(err)
     if (self.stores.length >= self.limit) {
-      removeSorted(self.stores, Math.floor(Math.random() * self.stores.length)).storage.close(done)
+      var removed = removeSorted(self.stores, Math.floor(Math.random() * self.stores.length))
+      if (removed === this._last) this._last = null
+      removed.storage.close(done)
     } else {
       insertSorted(self.stores, match)
       cb()
@@ -169,8 +171,10 @@ Storage.prototype._openAndRead = function (offset, length, cb) {
 }
 
 function removeSorted (list, i) {
+  var removed = list[i]
   for (; i < list.length - 1; i++) list[i] = list[i + 1]
-  return list.pop()
+  list.pop()
+  return removed
 }
 
 function insertSorted (list, item) {
