@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "abstract-random-access": "^1.1.2",
-    "inherits": "^2.0.1"
+    "inherits": "^2.0.1",
+    "sorted-array-functions": "^1.0.0"
   },
   "devDependencies": {
     "random-access-memory": "^2.1.0",

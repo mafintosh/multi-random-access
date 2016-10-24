@@ -1,5 +1,6 @@
 var AbstractRandomAccess = require('abstract-random-access')
 var inherits = require('inherits')
+var sorted = require('sorted-array-functions')
 
 module.exports = Storage
 
@@ -99,27 +100,16 @@ Storage.prototype._get = function (offset) {
     if (this._last.start <= offset && this._last.end > offset) return this._last
   }
 
-  var len = this.stores.length
-  var top = len - 1
-  var btm = 0
+  var i = sorted.lte(this.stores, {start: offset}, cmp)
+  if (i === -1) return null
 
-  while (top >= btm && btm >= 0 && top < len) {
-    var mid = Math.floor((top + btm) / 2)
-    var next = this.stores[mid]
-
-    if (offset < next.start) {
-      top = mid - 1
-      continue
-    }
-
-    if (offset >= next.end) {
-      btm = mid + 1
-      continue
-    }
-
+  var next = this.stores[i]
+  if (next.start <= offset && next.end > offset) {
     this._last = next
     return next
   }
+
+  return null
 }
 
 Storage.prototype.add = function (match, cb) {
@@ -138,11 +128,11 @@ Storage.prototype.add = function (match, cb) {
   function done (err) {
     if (err) return cb(err)
     if (self.stores.length >= self.limit) {
-      var removed = removeSorted(self.stores, Math.floor(Math.random() * self.stores.length))
+      var removed = self.stores.splice(Math.floor(Math.random() * self.stores.length), 1)[0]
       if (removed === this._last) this._last = null
       removed.storage.close(done)
     } else {
-      insertSorted(self.stores, match)
+      sorted.add(self.stores, match, cmp)
       cb()
     }
   }
@@ -170,24 +160,8 @@ Storage.prototype._openAndRead = function (offset, length, cb) {
   })
 }
 
-function removeSorted (list, i) {
-  var removed = list[i]
-  for (; i < list.length - 1; i++) list[i] = list[i + 1]
-  list.pop()
-  return removed
-}
-
-function insertSorted (list, item) {
-  var top = list.push(item) - 1
-  while (top) {
-    if (list[top - 1].start > item.start) {
-      list[top] = list[top - 1]
-      list[top - 1] = item
-      top--
-    } else {
-      break
-    }
-  }
+function cmp (a, b) {
+  return a.start - b.start
 }
 
 function noop () {}
