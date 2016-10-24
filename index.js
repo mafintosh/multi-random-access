@@ -69,13 +69,15 @@ Storage.prototype._readMulti = function (offset, length, next, cb) {
 Storage.prototype._end = function (opts, cb) {
   var self = this
 
-  next(0)
+  next()
 
-  function next (i) {
-    if (!self.stores[i]) return cb()
-    self.stores[i].storage.end(opts, function (err) {
+  function next () {
+    var store = self.stores[0]
+    if (!store) return process.nextTick(cb)
+    store.storage.end(opts, function (err) {
       if (err) return cb(err)
-      next(i + 1)
+      self.stores.shift()
+      next()
     })
   }
 }
@@ -83,13 +85,15 @@ Storage.prototype._end = function (opts, cb) {
 Storage.prototype._close = function (cb) {
   var self = this
 
-  next(0)
+  next()
 
-  function next (i) {
-    if (!self.stores[i]) return cb()
-    self.stores[i].storage.close(function (err) {
+  function next () {
+    var store = self.stores[0]
+    if (!store) return process.nextTick(cb)
+    store.storage.close(function (err) {
       if (err) return cb(err)
-      next(i + 1)
+      self.stores.shift()
+      next()
     })
   }
 }
