@@ -70,28 +70,24 @@ Storage.prototype._readMulti = function (offset, length, next, cb) {
 Storage.prototype._end = function (opts, cb) {
   var self = this
 
-  next(0)
+  loop(null)
 
-  function next (i) {
-    if (!self.stores[i]) return cb()
-    self.stores[i].storage.end(opts, function (err) {
-      if (err) return cb(err)
-      next(i + 1)
-    })
+  function loop (err) {
+    if (err) return cb(err)
+    if (!self.stores.length) return cb()
+    self.stores.shift().storage.end(opts, loop)
   }
 }
 
 Storage.prototype._close = function (cb) {
   var self = this
 
-  next(0)
+  loop(null)
 
-  function next (i) {
-    if (!self.stores[i]) return cb()
-    self.stores[i].storage.close(function (err) {
-      if (err) return cb(err)
-      next(i + 1)
-    })
+  function loop (err) {
+    if (err) return cb(err)
+    if (!self.stores.length) return cb()
+    self.stores.shift().storage.close(loop)
   }
 }
 
