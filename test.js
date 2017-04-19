@@ -154,7 +154,7 @@ test('end', function (t) {
   function create () {
     var childStorage = ram(new Buffer(10))
 
-    childStorage._end = function (opts, cb) {
+    childStorage.end = function (opts, cb) {
       t.ok(true)
       cb()
     }

@@ -44,6 +44,27 @@ Storage.prototype._writeMulti = function (offset, buf, next, cb) {
   })
 }
 
+Storage.prototype.del = function (offset, length, cb) {
+  var match = this._get(offset)
+  if (!match) return this._openAndDel(offset, length, cb)
+
+  var start = offset - match.start
+  var max = match.end - match.start
+
+  if (length > max - start) this._delMulti(offset, length, max - start, cb)
+  else if (match.storage.del) match.storage.del(start, length, cb)
+  else process.nextTick(cb)
+}
+
+Storage.prototype._delMulti = function (offset, length, next, cb) {
+  var self = this
+
+  this.del(offset, length, function (err) {
+    if (err) return cb(err)
+    self.del(offset + next, length - next, cb)
+  })
+}
+
 Storage.prototype._read = function (offset, length, cb) {
   var match = this._get(offset)
   if (!match) return this._openAndRead(offset, length, cb)
@@ -75,7 +96,12 @@ Storage.prototype._end = function (opts, cb) {
   function loop (err) {
     if (err) return cb(err)
     if (!self.stores.length) return cb()
-    self.stores.shift().storage.end(opts, loop)
+    end(self.stores.shift().storage, opts, loop)
+  }
+
+  function end (st, opts, cb) {
+    if (st.end) st.end(opts, cb)
+    else process.nextTick(cb)
   }
 }
 
