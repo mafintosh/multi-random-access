@@ -82,6 +82,34 @@ test('read + write', function (t) {
   })
 })
 
+test('del', function (t) {
+  var storage = Storage(function (offset, cb) {
+    var index = Math.floor(offset / 10)
+    var buf = new Buffer(10)
+    buf.fill(0)
+    cb(null, {
+      start: index * 10,
+      end: index * 10 + 10,
+      storage: ram(buf)
+    })
+  })
+
+  storage.write(0, new Buffer('hello world'), function (err) {
+    t.error(err)
+    storage.del(0, 10, function (err) {
+      t.error(err)
+      storage.read(0, 11, function (err, buf) {
+        t.error(err)
+        var target = new Buffer(11)
+        target.fill(0)
+        target[target.length - 1] = 'd'.charCodeAt(0)
+        t.same(buf, target)
+        t.end()
+      })
+    })
+  })
+})
+
 test('more than limit', function (t) {
   var storage = Storage({limit: 1}, function (offset, cb) {
     var index = Math.floor(offset / 10)

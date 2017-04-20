@@ -45,6 +45,8 @@ Storage.prototype._writeMulti = function (offset, buf, next, cb) {
 }
 
 Storage.prototype.del = function (offset, length, cb) {
+  if (!cb) cb = noop
+
   var match = this._get(offset)
   if (!match) return this._openAndDel(offset, length, cb)
 
@@ -52,6 +54,7 @@ Storage.prototype.del = function (offset, length, cb) {
   var max = match.end - match.start
 
   if (length > max - start) this._delMulti(offset, length, max - start, cb)
+  else if (start === 0 && length === max) this._destroy(match, cb)
   else if (match.storage.del) match.storage.del(start, length, cb)
   else process.nextTick(cb)
 }
@@ -62,6 +65,22 @@ Storage.prototype._delMulti = function (offset, length, next, cb) {
   this.del(offset, length, function (err) {
     if (err) return cb(err)
     self.del(offset + next, length - next, cb)
+  })
+}
+
+Storage.prototype._destroy = function (match, cb) {
+  var i = this.stores.indexOf(match)
+  if (i === -1) return process.nextTick(cb)
+
+  this.stores.splice(i, 1)
+  if (match === this._last) this._last = null
+
+  if (match.storage.destroy) return match.storage.destroy(cb)
+  if (match.storage.unlink) return match.storage.unlink(cb) // legacy, remove in the future
+
+  match.storage.del(0, match.end - match.start, function (err) {
+    if (err) return cb(err)
+    match.storage.close(cb)
   })
 }
 
@@ -158,6 +177,17 @@ Storage.prototype.add = function (match, cb) {
       cb()
     }
   }
+}
+
+Storage.prototype._openAndDel = function (offset, length, cb) {
+  var self = this
+  this._openStorage(offset, function (err, match) {
+    if (err) return cb(err)
+    self.add(match, function (err) {
+      if (err) return cb(err)
+      self.del(offset, length, cb)
+    })
+  })
 }
 
 Storage.prototype._openAndWrite = function (offset, buf, cb) {
