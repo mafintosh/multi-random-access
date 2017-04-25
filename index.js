@@ -62,7 +62,7 @@ Storage.prototype.del = function (offset, length, cb) {
 Storage.prototype._delMulti = function (offset, length, next, cb) {
   var self = this
 
-  this.del(offset, length, function (err) {
+  this.del(offset, length - next, function (err) {
     if (err) return cb(err)
     self.del(offset + next, length - next, cb)
   })
