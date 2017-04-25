@@ -1,6 +1,6 @@
 {
   "name": "multi-random-access",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "An abstract-random-access compliant instance that combines multiple other abstract-random-access instances into a single one.",
   "main": "index.js",
   "dependencies": {
