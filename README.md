@@ -1,6 +1,6 @@
 # multi-random-access
 
-An [abstract-random-access](https://github.com/juliangruber/abstract-random-access) compliant instance (API similar to [random-access-file](https://github.com/mafintosh/random-access-file)) that combines multiple other abstract-random-access instances into a single one.
+An [random-access-storage](https://github.com/random-access-storage/random-access-storage) compliant instance (API similar to [random-access-file](https://github.com/random-access-storage/random-access-file)) that combines multiple other random-access-storage instances into a single one.
 
 ```
 npm install multi-random-access
@@ -10,13 +10,14 @@ npm install multi-random-access
 
 ## Usage
 
-In the below example we'll create a multi-random-access instance that writes to different instances of [random-access-memory](https://github.com/mafintosh/random-access-memory), each containing 10 bytes of data.
+In the below example we'll create a multi-random-access instance that writes to different instances of [random-access-file](https://github.com/random-access-storage/random-access-file), each containing 10 bytes of data.
 
 ``` js
 var multi = require('multi-random-access')
-var ram = require('random-access-memory')
+var file = require('random-access-memory')
 
-var storage = multi(function (offset, cb) {
+var length = file('/tmp/multi-length-file')
+var storage = multi(length, function (offset, cb) {
   var index = Math.floor(offset / 10)
 
   console.log('Creating new underlying storage')
@@ -24,7 +25,7 @@ var storage = multi(function (offset, cb) {
   cb(null, {
     start: index * 10,
     end: index * 10 + 10,
-    storage: ram()
+    storage: file('/tmp/multi-part-' + index)
   })
 })
 
@@ -39,9 +40,9 @@ storage.write(0, Buffer('hello world'), function (err) {
 
 ## API
 
-#### `var storage = multi([options], open)`
+#### `var storage = multi(length, open, [options])`
 
-Create a new instance. `open` is a function that is called when a new storage instance is needed. A new instance is needed when a read or write happens in a byte range that has not been opened yet.
+Create a new instance. `length` is a random-access-storage that is used to keep track of total store length. `open` is a function that is called when a new storage instance is needed. A new instance is needed when a read or write happens in a byte range that has not been opened yet.
 
 The signature for open is `(offset, cb)`. You should call the callback with an object containing the following properties:
 
@@ -50,7 +51,7 @@ function open (offset, cb) {
   cb(null, {
     start: startByteOffset,
     end: endByteOffset,
-    storage: abstractRandomAccessInstance
+    storage: randomAccessStorageInstance
   })
 }
 ```
